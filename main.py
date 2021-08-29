@@ -14,7 +14,7 @@ passphrase = os.environ.get("CB_PASS")
 b64secret = os.environ.get("CB_SECRET")
 products = os.environ.get("CB_PRODUCTS", "BTC-GBP,ETH-GBP")
 delay = os.environ.get("CB_DELAY", 3600)
-debug = os.environ.get("CB_DEBUG", True)
+debug = os.environ.get("CB_DEBUG", False)
 days = os.environ.get("CB_DAYS", 1)
 
 
@@ -73,7 +73,6 @@ if __name__ == '__main__':
 
         daily = format((rem_bal / rem_days) / total_products, '.2f')
         for product in products.split(','):
-            cur_price = client.get_product_ticker(product_id=product)["price"]
 
             last_order = list(islice(auth_client.get_fills(product_id=product),
                                      1))[0]
@@ -109,7 +108,6 @@ if __name__ == '__main__':
                 print(f"remaining balance {rem_bal}")
                 print(f"remaining days {rem_days}")
                 print(f"daily amount {daily}")
-                print(f"current {product} price £{cur_price}")
 
                 executed[product] = False
                 executeMarketOrder(product, daily)
