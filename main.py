@@ -3,7 +3,8 @@
 import cbpro
 
 import calendar
-from datetime import datetime
+from datetime import datetime, timedelta
+from itertools import islice
 import os
 import sys
 import time
@@ -13,7 +14,8 @@ passphrase = os.environ.get("CB_PASS")
 b64secret = os.environ.get("CB_SECRET")
 products = os.environ.get("CB_PRODUCTS", "BTC-GBP,ETH-GBP")
 delay = os.environ.get("CB_DELAY", 3600)
-debug = os.environ.get("CB_DEBUG", False)
+debug = os.environ.get("CB_DEBUG", True)
+days = os.environ.get("CB_DAYS", 1)
 
 
 def daysLeftInMonth():
@@ -64,24 +66,28 @@ if __name__ == '__main__':
         auth_client = cbpro.AuthenticatedClient(key, b64secret, passphrase)
 
         today = datetime.now().strftime("%F")
-        rem_balance = remainingBalance()
+        rem_bal = remainingBalance()
         rem_days = daysLeftInMonth()
         total_products = len(products.split(','))
 
-        daily = format((rem_balance / rem_days) / total_products, '.2f')
+        daily = format((rem_bal / rem_days) / total_products, '.2f')
         for product in products.split(','):
             cur_price = client.get_product_ticker(product_id=product)["price"]
 
-            if rem_balance < 5:
+            last_order = list(islice(auth_client.get_fills(product_id=product),
+                                     1))[0]
+
+            last_order_date = datetime.strptime(last_order['created_at'],
+                                                "%Y-%m-%dT%H:%M:%S.%fZ")
+            next_order = last_order_date + timedelta(days=1)
+            delta = datetime.utcnow() - last_order_date
+
+            if rem_bal < 5:
                 print("Insufficient funds")
 
-            tf = next((item for item in
-                       auth_client.get_fills(product_id=product)
-                       if item["created_at"].startswith(today)), None)
-
-            if tf:
+            elif delta.days < days:
                 if not executed[product]:
-                    order = auth_client.get_order(tf["order_id"])
+                    order = auth_client.get_order(last_order["order_id"])
                     print("*"*30)
                     print(f"already executed {product} today")
                     print(f"order id: {order['id']}")
@@ -91,13 +97,15 @@ if __name__ == '__main__':
                     print(f"filled_size: {order['filled_size']}")
                     print(f"fill fees: {order['fill_fees']}")
                     print(f"status: {order['status']}")
+                    print(f"next purchase amount/date: {daily}/{next_order}")
+                    print(f"remaining balance/days: {rem_bal:.2f}/{rem_days}")
                     print("*"*30)
                     executed[product] = True
 
             else:
                 print("*"*30)
                 print(f"executing {product} order:")
-                print(f"remaining balance {rem_balance}")
+                print(f"remaining balance {rem_bal}")
                 print(f"remaining days {rem_days}")
                 print(f"daily amount {daily}")
                 print(f"current {product} price £{cur_price}")
