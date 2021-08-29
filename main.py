@@ -117,4 +117,4 @@ if __name__ == '__main__':
         if debug:
             print(f"sleeping {delay} seconds...")
 
-        time.sleep(delay)
+        time.sleep(int(delay))
