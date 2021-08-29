@@ -61,6 +61,7 @@ if __name__ == '__main__':
         print("[ERROR]: CB_PRODUCTS not set")
         sys.exit(1)
 
+    print(f"Running DCA for {products} every {days} days")
     while True:
         client = cbpro.PublicClient()
         auth_client = cbpro.AuthenticatedClient(key, b64secret, passphrase)
