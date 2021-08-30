@@ -43,6 +43,7 @@ def executeMarketOrder(product, amount):
 
 if __name__ == '__main__':
     executed = {}
+    insufficient_funds = False
     for product in products.split(','):
         executed[product] = False
     if not key:
@@ -83,7 +84,9 @@ if __name__ == '__main__':
             delta = datetime.utcnow() - last_order_date
 
             if rem_bal < 5:
-                print("Insufficient funds")
+                if not insufficient_funds:
+                    print("Insufficient funds")
+                    insufficient_funds = True
 
             elif delta.days < days:
                 if not executed[product]:
@@ -101,6 +104,8 @@ if __name__ == '__main__':
                     print(f"remaining balance/days: {rem_bal:.2f}/{rem_days}")
                     print("*"*30)
                     executed[product] = True
+
+                insufficient_funds = False
 
             else:
                 print("*"*30)
