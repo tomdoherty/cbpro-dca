@@ -22,7 +22,7 @@ def daysLeftInMonth():
     today = datetime.today()
     last_day = calendar.monthrange(today.year, today.month)[1]
 
-    return float(last_day - today.day)
+    return float((last_day - today.day) + 1)
 
 
 def remainingBalance():
