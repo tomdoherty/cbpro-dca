@@ -22,7 +22,7 @@ def daysLeftInMonth():
     today = datetime.today()
     last_day = calendar.monthrange(today.year, today.month)[1]
 
-    return float((last_day - today.day) + 1)
+    return float(last_day - today.day)
 
 
 def remainingBalance():
@@ -72,7 +72,11 @@ if __name__ == '__main__':
         rem_days = daysLeftInMonth()
         total_products = len(products.split(','))
 
-        daily = format((rem_bal / rem_days) / total_products, '.2f')
+        if rem_days < 1:
+            daily = rem_bal
+        else:
+            daily = format((rem_bal / rem_days) / total_products, '.2f')
+
         for product in products.split(','):
 
             last_order = list(islice(auth_client.get_fills(product_id=product),
