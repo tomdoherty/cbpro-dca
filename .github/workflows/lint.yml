@@ -1,0 +1,22 @@
+name: lint
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Set up Python environment
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.8"
+      -
+        name: flake8 Lint
+        uses: py-actions/flake8@v1
+      -
+        name: Python Style Checker
+        uses: andymckay/pycodestyle-action@0.1.3

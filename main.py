@@ -67,7 +67,6 @@ if __name__ == '__main__':
         client = cbpro.PublicClient()
         auth_client = cbpro.AuthenticatedClient(key, b64secret, passphrase)
 
-        today = datetime.now().strftime("%F")
         rem_bal = remainingBalance()
         rem_days = daysLeftInMonth()
         total_products = len(products.split(','))
