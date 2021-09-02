@@ -84,7 +84,7 @@ if __name__ == '__main__':
             last_order_date = datetime.strptime(last_order['created_at'],
                                                 "%Y-%m-%dT%H:%M:%S.%fZ")
             next_order = last_order_date + timedelta(days=1)
-            delta = datetime.utcnow() - last_order_date
+            delta = datetime.now() - last_order_date
 
             if rem_bal < 5:
                 if not insufficient_funds:
