@@ -9,6 +9,8 @@ import os
 import sys
 import time
 
+from twilio.rest import Client
+
 key = os.environ.get("CB_KEY")
 passphrase = os.environ.get("CB_PASS")
 b64secret = os.environ.get("CB_SECRET")
@@ -16,6 +18,10 @@ products = os.environ.get("CB_PRODUCTS", "BTC-GBP,ETH-GBP")
 delay = os.environ.get("CB_DELAY", 3600)
 debug = os.environ.get("CB_DEBUG", False)
 days = os.environ.get("CB_DAYS", 1)
+sms_to = os.environ.get("CB_SMS_TO")
+sms_from = os.environ.get("CB_SMS_FROM")
+twilio_sid = os.environ.get("TWILIO_SID")
+twilio_secret = os.environ.get("TWILIO_SECRET")
 
 
 def daysLeftInMonth():
@@ -39,6 +45,15 @@ def executeMarketOrder(product, amount):
                                                funds=amount)
 
         print(f"order id: {order['id']}")
+
+
+def sendSms(body):
+    client = Client(twilio_sid, twilio_secret)
+
+    client.messages.create(body=body,
+                           from_=sms_from,
+                           to=sms_to
+                           )
 
 
 if __name__ == '__main__':
@@ -88,39 +103,43 @@ if __name__ == '__main__':
 
             if rem_bal < 5:
                 if not insufficient_funds:
-                    print("Insufficient funds")
+                    report = "Insufficient funds"
+                    print(report)
+                    sendSms(report)
                     insufficient_funds = True
 
             elif delta.days < days:
                 if not executed[product]:
                     order = auth_client.get_order(last_order["order_id"])
-                    print("*"*30)
-                    print(f"already executed {product} today")
-                    print(f"order id: {order['id']}")
-                    print(f"created at: {order['created_at']}")
-                    print(f"done at: {order['done_at']}")
-                    print(f"executed value: {order['executed_value']}")
-                    print(f"filled_size: {order['filled_size']}")
-                    print(f"fill fees: {order['fill_fees']}")
-                    print(f"status: {order['status']}")
-                    print(f"next purchase amount/date: {daily}/{next_order}")
-                    print(f"remaining balance/days: {rem_bal:.2f}/{rem_days}")
-                    print("*"*30)
+                    report = f"""
+already executed {product} today
+order id: {order['id']}
+created at: {order['created_at']}
+done at: {order['done_at']}
+executed value: {order['executed_value']}
+filled_size: {order['filled_size']}
+fill fees: {order['fill_fees']}
+status: {order['status']}
+next purchase amount/date: {daily}/{next_order}
+remaining balance/days: {rem_bal:.2f}/{rem_days}
+"""
+                    print("*"*30, report)
+                    sendSms(report)
                     executed[product] = True
 
                 insufficient_funds = False
 
             else:
-                print("*"*30)
-                print(f"executing {product} order:")
-                print(f"remaining balance {rem_bal}")
-                print(f"remaining days {rem_days}")
-                print(f"daily amount {daily}")
-
+                report = f"""
+executing {product} order:
+remaining balance {rem_bal}
+remaining days {rem_days}
+daily amount {daily}
+"""
+                print("*"*30, report)
+                sendSms(report)
                 executed[product] = False
                 executeMarketOrder(product, daily)
-
-                print("*"*30)
 
         if debug:
             print(f"sleeping {delay} seconds...")
