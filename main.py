@@ -100,10 +100,7 @@ if __name__ == '__main__':
                               ["price"])
 
             price_diff = cur_price - last_order_price
-            if cur_price > last_order_price:
-                price_diff = f"+{price_diff}"
-
-            price_diff_pct = (price_diff / last_order_price)*100
+            price_diff_pct = (price_diff / last_order_price)*100.0
 
             last_order_date = datetime.strptime(last_order['created_at'],
                                                 "%Y-%m-%dT%H:%M:%S.%fZ")
