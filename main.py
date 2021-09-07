@@ -103,6 +103,8 @@ if __name__ == '__main__':
             if cur_price > last_order_price:
                 price_diff = f"+{price_diff}"
 
+            price_diff_pct = (price_diff / last_order_price)*100
+
             last_order_date = datetime.strptime(last_order['created_at'],
                                                 "%Y-%m-%dT%H:%M:%S.%fZ")
             next_order = last_order_date + timedelta(days=1)
@@ -118,7 +120,6 @@ if __name__ == '__main__':
             elif delta.days < days:
                 if not executed[product]:
                     order = auth_client.get_order(last_order["order_id"])
-                    last_order_price = order['executed_value']
 
                     report = f"""
 executed {product}
@@ -133,7 +134,7 @@ next purchase amount/date: {daily}/{next_order}
 remaining balance/days: {rem_bal:.2f}/{rem_days}
 current price: {cur_price}
 last orders price: {last_order_price}
-price difference: {price_diff:.2f}
+price difference: {price_diff:.2f} ({price_diff_pct:.2f}%)
 """
                     print("*"*30, report)
                     sendSms(report)
