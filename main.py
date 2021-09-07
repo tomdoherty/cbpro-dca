@@ -92,9 +92,16 @@ if __name__ == '__main__':
             daily = format((rem_bal / rem_days) / total_products, '.2f')
 
         for product in products.split(','):
-
             last_order = list(islice(auth_client.get_fills(product_id=product),
                                      1))[0]
+
+            last_order_price = float(last_order['price'])
+            cur_price = float(client.get_product_ticker(product_id=product)
+                              ["price"])
+
+            price_diff = cur_price - last_order_price
+            if cur_price > last_order_price:
+                price_diff = f"+{price_diff}"
 
             last_order_date = datetime.strptime(last_order['created_at'],
                                                 "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -111,8 +118,10 @@ if __name__ == '__main__':
             elif delta.days < days:
                 if not executed[product]:
                     order = auth_client.get_order(last_order["order_id"])
+                    last_order_price = order['executed_value']
+
                     report = f"""
-already executed {product} today
+executed {product}
 order id: {order['id']}
 created at: {order['created_at']}
 done at: {order['done_at']}
@@ -122,6 +131,9 @@ fill fees: {order['fill_fees']}
 status: {order['status']}
 next purchase amount/date: {daily}/{next_order}
 remaining balance/days: {rem_bal:.2f}/{rem_days}
+current price: {cur_price}
+last orders price: {last_order_price}
+price difference: {price_diff:.2f}
 """
                     print("*"*30, report)
                     sendSms(report)
