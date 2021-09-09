@@ -8,19 +8,19 @@ This tool automates the process using [Coinbase Pro](https://pro.coinbase.com).
 
 Configuration is by environment variables:
 
-| Option        | Description                      | Default         |
-| :-----------: | :------------------------------: | :-------------: |
-| CB_KEY        | API Key                          |                 |
-| CB_PASS       | API Password                     |                 |
-| CB_SECRET     | API Secret                       |                 |
-| CB_PRODUCTS   | Products to DCA                  | BTC-GBP,ETH-GBP |
-| CB_DELAY      | Delay between polls              | 3600            |
-| CB_DEBUG      | Don't execute, output debug info | false           |
-| CB_DAYS       | Days between executions          | 1               |
-| CB_SMS_FROM   | SMS reports from number          |                 |
-| CB_SMS_TO     | SMS reports to number            |                 |
-| TWILIO_SID    | Twilio SID                       |                 |
-| TWILIO_SECRET | Twilio Secret                    |                 |
+| Option        | Description                      | Default               |
+| :-----------: | :------------------------------: | :-------------------: |
+| CB_KEY        | API Key                          |                       |
+| CB_PASS       | API Password                     |                       |
+| CB_SECRET     | API Secret                       |                       |
+| CB_PRODUCTS   | Products to DCA. Product:Percent | BTC-GBP:40,ETH-GBP:60 |
+| CB_DELAY      | Delay between polls              | 3600                  |
+| CB_DEBUG      | Don't execute, output debug info | false                 |
+| CB_DAYS       | Days between executions          | 1                     |
+| CB_SMS_FROM   | SMS reports from number          |                       |
+| CB_SMS_TO     | SMS reports to number            |                       |
+| TWILIO_SID    | Twilio SID                       |                       |
+| TWILIO_SECRET | Twilio Secret                    |                       |
 
 ### Run in docker
 
@@ -29,7 +29,7 @@ $ cat env.sh
 CB_KEY=XXX
 CB_PASS=XXX
 CB_SECRET=XXX
-CB_PRODUCTS=ETH-GBP
+CB_PRODUCTS=ETH-GBP:100
 CB_DELAY=360
 
 $ docker run --name cbpro-dca --env-file env.sh -d -it tomdo/cbpro-dca
