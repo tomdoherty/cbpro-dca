@@ -56,11 +56,26 @@ def sendSms(body):
                            )
 
 
+def validateProducts(products):
+    total = 100
+    for product in products.split(','):
+        if ':' not in product:
+            print(f"{product} is missing percentage, e.g. {product}:50")
+            os.exit(2)
+        else:
+            total -= int(product.split(':')[1])
+
+    if total:
+        print("total percentages do not equal 100")
+        os.exit(2)
+
+
 if __name__ == '__main__':
     executed = {}
-    insufficient_funds = False
+    validateProducts(products)
     for product in products.split(','):
-        executed[product] = False
+        executed[product.split(':')[0]] = False
+
     if not key:
         print("[ERROR]: CB_KEY not set")
         sys.exit(1)
@@ -84,14 +99,18 @@ if __name__ == '__main__':
 
         rem_bal = remainingBalance()
         rem_days = daysLeftInMonth()
-        total_products = len(products.split(','))
 
-        if rem_days < 1:
-            daily = rem_bal
-        else:
-            daily = format((rem_bal / rem_days) / total_products, '.2f')
+        for p in products.split(','):
+            product = p.split(':')[0]
+            product_pct = p.split(':')[1]
 
-        for product in products.split(','):
+            if rem_days < 1:
+                daily = format(rem_bal * (int(product_pct) / 100),
+                               '.2f')
+            else:
+                daily = format((rem_bal / rem_days) * (int(product_pct) / 100),
+                               '.2f')
+
             last_order = list(islice(auth_client.get_fills(product_id=product),
                                      1))[0]
 
@@ -108,11 +127,10 @@ if __name__ == '__main__':
             delta = datetime.now() - last_order_date
 
             if rem_bal < 5:
-                if not insufficient_funds:
-                    report = "Insufficient funds"
-                    print(report)
-                    sendSms(report)
-                    insufficient_funds = True
+                report = "Insufficient funds"
+                print(report)
+                sendSms(report)
+                os.exit(1)
 
             elif delta.days < days:
                 if not executed[product]:
@@ -122,11 +140,10 @@ if __name__ == '__main__':
 executed {product}
 order id: {order['id']}
 created at: {order['created_at']}
-done at: {order['done_at']}
+{order['status']} at: {order['done_at']}
 executed value: {order['executed_value']}
 filled_size: {order['filled_size']}
 fill fees: {order['fill_fees']}
-status: {order['status']}
 next purchase amount/date: {daily}/{next_order}
 remaining balance/days: {rem_bal:.2f}/{rem_days}
 current price: {cur_price}
@@ -136,8 +153,6 @@ price difference: {price_diff:.2f} ({price_diff_pct:.2f}%)
                     print("*"*30, report)
                     sendSms(report)
                     executed[product] = True
-
-                insufficient_funds = False
 
             else:
                 report = f"""
