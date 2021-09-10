@@ -135,6 +135,7 @@ if __name__ == '__main__':
                                     '.0f')
 
             product_bal = productBalance(product)
+            product_bal_gbp = cur_price * product_bal
             if float(price_diff_pct) < float(dip_pct):
                 if dip[product] > float(price_diff_pct):
                     dip[product] = float(price_diff_pct)
@@ -156,20 +157,25 @@ if __name__ == '__main__':
             elif delta.days < days:
                 if not executed[product]:
                     order = auth_client.get_order(last_order["order_id"])
+                    fill_fees = float(order['fill_fees'])
+                    filled_size = float(order['filled_size'])
+                    executed_value = float(order['executed_value'])
 
                     report = f"""
 last executed {product}
 order id: {order['id']}
 created at: {order['created_at']}
 {order['status']} at: {order['done_at']}
-executed value: {order['executed_value']}
-filled_size: {order['filled_size']}
-fill fees: {order['fill_fees']}
-current holdings: {product_bal}
-next purchase amount/date: {daily}/{next_order}
-remaining balance/days: {rem_bal:.2f}/{rem_days}
-current price: {cur_price}
-last orders price: {last_order_price}
+executed value: £{executed_value:.2f}
+filled_size: {filled_size}
+fill fees: £{fill_fees:.2f}
+current holdings: {product_bal} (£{product_bal_gbp:.2f})
+next purchase amount: £{daily}
+next purchase date: {next_order}
+remaining balance: £{rem_bal:.2f}
+remaining days: {rem_days}
+current price: £{cur_price}
+last orders price: £{last_order_price}
 price difference: {price_diff:.2f} ({price_diff_pct}%)
 """
                     print("*"*30, report)
@@ -179,7 +185,7 @@ price difference: {price_diff:.2f} ({price_diff_pct}%)
             else:
                 report = f"""
 executing {product} order:
-remaining balance {rem_bal}
+remaining balance £{rem_bal:.2f}
 remaining days {rem_days}
 daily amount {daily}
 """
