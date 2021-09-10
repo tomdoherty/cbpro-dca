@@ -174,9 +174,6 @@ next purchase amount: £{daily}
 next purchase date: {next_order}
 remaining balance: £{rem_bal:.2f}
 remaining days: {rem_days}
-current price: £{cur_price}
-last orders price: £{last_order_price}
-price difference: {price_diff:.2f} ({price_diff_pct}%)
 """
                     print("*"*30, report)
                     sendSms(report)
@@ -188,6 +185,9 @@ executing {product} order:
 remaining balance £{rem_bal:.2f}
 remaining days {rem_days}
 daily amount {daily}
+current price: £{cur_price}
+last orders price: £{last_order_price}
+price difference: {price_diff:.2f} ({price_diff_pct}%)
 """
                 print("*"*30, report)
                 sendSms(report)
