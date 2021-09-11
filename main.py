@@ -139,7 +139,11 @@ if __name__ == '__main__':
             if float(price_diff_pct) < float(dip_pct):
                 if dip[product] > float(price_diff_pct):
                     dip[product] = float(price_diff_pct)
-                    report = f"{product} dipped {price_diff_pct}"
+                    nowtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    report = f"""
+At {nowtime} {product} dipped {price_diff_pct}%
+from your last order price ({last_order_price}) to {last_order_price}
+"""
                     print(report)
                     sendSms(report)
 
