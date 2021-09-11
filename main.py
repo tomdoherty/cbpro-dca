@@ -132,7 +132,7 @@ if __name__ == '__main__':
 
             price_diff = cur_price - last_order_price
             price_diff_pct = format((price_diff / last_order_price)*100.0,
-                                    '.0f')
+                                    '.2f')
 
             product_bal = productBalance(product)
             product_bal_gbp = cur_price * product_bal
