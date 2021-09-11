@@ -165,6 +165,20 @@ Last order price was {last_order_price}
                     print("*"*30, report)
                     sendSms(report)
 
+            ta_advice = taSummary(product)
+
+            if ta_advice == "STRONG_BUY" or ta_advice == "STRONG_SELL":
+                if product not in ta or ta_advice != ta[product]:
+                    report = f"""
+TA report for {product} at {nowtime} is {ta_advice}
+Current price is {cur_price}
+Last order price was {last_order_price}
+"""
+                    ta[product] = ta_advice
+
+                    print("*"*30, report)
+                    sendSms(report)
+
             product_bal = productBalance(product)
             product_bal_gbp = cur_price * product_bal
             if float(price_diff_pct) < float(dip_pct):
