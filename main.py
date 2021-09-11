@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import cbpro
+from tradingview_ta import TA_Handler, Interval
 
 import calendar
 from datetime import datetime, timedelta
@@ -80,9 +81,24 @@ def validateProducts(products):
         sys.exit(2)
 
 
+def taSummary(product):
+    p = product.replace('-', '')
+    ta = TA_Handler(
+        symbol=p,
+        screener="crypto",
+        exchange="coinbase",
+        interval=Interval.INTERVAL_1_DAY
+    )
+    summary = ta.get_analysis().summary
+
+    if 'RECOMMENDATION' in summary:
+        return summary['RECOMMENDATION']
+
+
 if __name__ == '__main__':
     executed = {}
     dip = {}
+    ta = {}
     validateProducts(products)
     for product in products.split(','):
         executed[product.split(':')[0]] = False
@@ -115,6 +131,7 @@ if __name__ == '__main__':
         for p in products.split(','):
             product = p.split(':')[0]
             product_pct = p.split(':')[1]
+            nowtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
             if rem_days < 1:
                 daily = format(rem_bal * (int(product_pct) / 100),
@@ -134,15 +151,29 @@ if __name__ == '__main__':
             price_diff_pct = format((price_diff / last_order_price)*100.0,
                                     '.2f')
 
+            ta_advice = taSummary(product)
+
+            if ta_advice == "STRONG_BUY" or ta_advice == "STRONG_SELL":
+                if product not in ta or ta_advice != ta[product]:
+                    report = f"""
+TA report for {product} at {nowtime} is {ta_advice}
+Current price is {cur_price}
+Last order price was {last_order_price}
+"""
+                    ta[product] = ta_advice
+
+                    print("*"*30, report)
+                    sendSms(report)
+
             product_bal = productBalance(product)
             product_bal_gbp = cur_price * product_bal
             if float(price_diff_pct) < float(dip_pct):
                 if dip[product] > float(price_diff_pct):
                     dip[product] = float(price_diff_pct)
-                    nowtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     report = f"""
 At {nowtime} {product} dipped {price_diff_pct}%
 from your last order price ({last_order_price}) to {last_order_price}
+current advice is: {ta_advice}
 """
                     print(report)
                     sendSms(report)
@@ -178,6 +209,7 @@ next purchase amount: £{daily}
 next purchase date: {next_order}
 remaining balance: £{rem_bal:.2f}
 remaining days: {rem_days}
+current advice is: {ta_advice}
 """
                     print("*"*30, report)
                     sendSms(report)
@@ -192,6 +224,7 @@ daily amount {daily}
 current price: £{cur_price}
 last orders price: £{last_order_price}
 price difference: {price_diff:.2f} ({price_diff_pct}%)
+current advice is: {ta_advice}
 """
                 print("*"*30, report)
                 sendSms(report)
