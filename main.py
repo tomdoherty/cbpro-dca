@@ -153,19 +153,7 @@ if __name__ == '__main__':
 
             ta_advice = taSummary(product)
 
-            if ta_advice == "STRONG_BUY" or ta_advice == "STRONG_SELL":
-                if product not in ta or ta_advice != ta[product]:
-                    report = f"""
-TA report for {product} at {nowtime} is {ta_advice}
-Current price is {cur_price}
-Last order price was {last_order_price}
-"""
-                    ta[product] = ta_advice
-
-                    print("*"*30, report)
-                    sendSms(report)
-
-            ta_advice = taSummary(product)
+            print(f"{nowtime}: {product}: last_order: £{last_order_price} curr: £{cur_price} ({price_diff_pct}%): {ta_advice}")
 
             if ta_advice == "STRONG_BUY" or ta_advice == "STRONG_SELL":
                 if product not in ta or ta_advice != ta[product]:
@@ -186,7 +174,7 @@ Last order price was {last_order_price}
                     dip[product] = float(price_diff_pct)
                     report = f"""
 At {nowtime} {product} dipped {price_diff_pct}%
-from your last order price ({last_order_price}) to {last_order_price}
+from your last order price ({last_order_price}) to {cur_price}
 current advice is: {ta_advice}
 """
                     print(report)
