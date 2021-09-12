@@ -217,7 +217,7 @@ current advice is: {ta_advice}
                     sendSms(report)
                     executed[product] = True
 
-            else:
+            elif ta_advice == "BUY" or ta_advice == "STRONG_BUY":
                 report = f"""
 executing {product} order:
 remaining balance £{rem_bal:.2f}
