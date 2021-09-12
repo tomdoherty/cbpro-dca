@@ -153,7 +153,7 @@ if __name__ == '__main__':
 
             ta_advice = taSummary(product)
 
-            print(f"{nowtime}: {product}: last_order: £{last_order_price} curr: £{cur_price} ({price_diff_pct}%): {ta_advice}")
+            print(f"{nowtime}: {product}: last_order: £{last_order_price} curr: £{cur_price} ({price_diff_pct}%): {ta_advice}")  # noqa: E501
 
             if ta_advice == "STRONG_BUY" or ta_advice == "STRONG_SELL":
                 if product not in ta or ta_advice != ta[product]:
