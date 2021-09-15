@@ -217,7 +217,7 @@ current advice is: {ta_advice}
                     sendSms(report)
                     executed[product] = True
 
-            elif ta_advice == "BUY" or ta_advice == "STRONG_BUY":
+            elif ta_advice == "BUY" or ta_advice == "STRONG_BUY" or delta.days > days + 1:  # noqa: E501
                 report = f"""
 executing {product} order:
 remaining balance £{rem_bal:.2f}
