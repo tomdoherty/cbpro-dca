@@ -137,7 +137,8 @@ if __name__ == '__main__':
                 daily = format(rem_bal * (int(product_pct) / 100),
                                '.2f')
             else:
-                daily = format((rem_bal / rem_days) * (int(product_pct) / 100),
+                daily = format((rem_bal / (rem_days / float(days))) *
+                               (int(product_pct) / 100),
                                '.2f')
 
             last_order = list(islice(auth_client.get_fills(product_id=product),
@@ -191,7 +192,7 @@ current advice is: {ta_advice}
                 sendSms(report)
                 sys.exit(1)
 
-            elif delta.days < days:
+            elif delta.days < float(days):
                 if not executed[product]:
                     order = auth_client.get_order(last_order["order_id"])
                     fill_fees = float(order['fill_fees'])
