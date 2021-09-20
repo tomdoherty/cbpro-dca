@@ -6,6 +6,7 @@ from tradingview_ta import TA_Handler, Interval
 import calendar
 from datetime import datetime, timedelta
 from itertools import islice
+import json
 import os
 import sys
 import time
@@ -26,6 +27,10 @@ twilio_sid = os.environ.get("TWILIO_SID")
 twilio_secret = os.environ.get("TWILIO_SECRET")
 
 
+def reportJson(report):
+    print(json.dumps(report, indent=4, sort_keys=True, default=str))
+
+
 def daysLeftInMonth():
     today = datetime.today()
     last_day = calendar.monthrange(today.year, today.month)[1]
@@ -34,8 +39,12 @@ def daysLeftInMonth():
 
 
 def remainingBalance():
-    return float(next(item for item in auth_client.get_accounts()
-                      if item["currency"] == "GBP")["available"])
+    try:
+        return float(next(item for item in auth_client.get_accounts()
+                          if item["currency"] == "GBP")["available"])
+    except Exception as e:
+        print(e)
+        return 0.0
 
 
 def productBalance(product):
@@ -59,6 +68,7 @@ def executeMarketOrder(product, amount):
 
 
 def sendSms(body):
+    return
     client = Client(twilio_sid, twilio_secret)
 
     client.messages.create(body=body,
@@ -120,7 +130,6 @@ if __name__ == '__main__':
         print("[ERROR]: CB_PRODUCTS not set")
         sys.exit(1)
 
-    print(f"Running DCA for {products} every {days} days")
     while True:
         client = cbpro.PublicClient()
         auth_client = cbpro.AuthenticatedClient(key, b64secret, passphrase)
@@ -153,32 +162,58 @@ if __name__ == '__main__':
 
             ta_advice = taSummary(product)
 
-            print(f"{nowtime}: {product}: last_order: £{last_order_price} curr: £{cur_price} ({price_diff_pct}%): {ta_advice}")  # noqa: E501
+            report = {
+                    "type": "stats",
+                    "time": nowtime,
+                    "product": product,
+                    "last_order_price": last_order_price,
+                    "cur_price": cur_price,
+                    "price_diff_pct": price_diff_pct,
+                    "ta_advice": ta_advice
+                    }
+            reportJson(report)
 
             if ta_advice == "STRONG_BUY" or ta_advice == "STRONG_SELL":
                 if product not in ta or ta_advice != ta[product]:
-                    report = f"""
+                    report = {
+                            "type": "stats",
+                            "time": nowtime,
+                            "product": product,
+                            "last_order_price": last_order_price,
+                            "cur_price": cur_price,
+                            "price_diff_pct": price_diff_pct,
+                            "ta_advice": ta_advice
+                            }
+                    reportJson(report)
+
+                    sendSms(f"""
 TA report for {product} at {nowtime} is {ta_advice}
 Current price is {cur_price}
 Last order price was {last_order_price}
-"""
+""")
                     ta[product] = ta_advice
-
-                    print("*"*30, report)
-                    sendSms(report)
 
             product_bal = productBalance(product)
             product_bal_gbp = cur_price * product_bal
             if float(price_diff_pct) < float(dip_pct):
                 if dip[product] > float(price_diff_pct):
                     dip[product] = float(price_diff_pct)
-                    report = f"""
+                    report = {
+                            "type": "dip",
+                            "time": nowtime,
+                            "product": product,
+                            "last_order_price": last_order_price,
+                            "cur_price": cur_price,
+                            "price_diff_pct": price_diff_pct,
+                            "ta_advice": ta_advice
+                            }
+                    reportJson(report)
+
+                    sendSms(f"""
 At {nowtime} {product} dipped {price_diff_pct}%
 from your last order price ({last_order_price}) to {cur_price}
 current advice is: {ta_advice}
-"""
-                    print(report)
-                    sendSms(report)
+""")
 
             last_order_date = datetime.strptime(last_order['created_at'],
                                                 "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -186,9 +221,15 @@ current advice is: {ta_advice}
             delta = datetime.now() - last_order_date
 
             if float(daily) < 10.0:
-                report = "Insufficient funds"
-                print(report)
-                sendSms(report)
+                report = {
+                        "type": "funds",
+                        "time": nowtime,
+                        "product": product,
+                        "error": "Insufficient funds"
+                        }
+
+                reportJson(report)
+                sendSms("Insufficient funds")
                 sys.exit(1)
 
             elif delta.days < days:
@@ -198,7 +239,23 @@ current advice is: {ta_advice}
                     filled_size = float(order['filled_size'])
                     executed_value = float(order['executed_value'])
 
-                    report = f"""
+                    report = {
+                            "type": "last_executed",
+                            "time": nowtime,
+                            "product": product,
+                            "created_at": order['created_at'],
+                            "order_id": order['id'],
+                            "filled_size": filled_size,
+                            "fill_fees": fill_fees,
+                            "daily": daily,
+                            "next_order": next_order,
+                            "rem_bal": rem_bal,
+                            "rem_days": rem_days,
+                            "holdings": product_bal,
+                            "ta_advice": ta_advice,
+                            }
+                    reportJson(report)
+                    sendSms(f"""
 last executed {product}
 order id: {order['id']}
 created at: {order['created_at']}
@@ -212,13 +269,27 @@ next purchase date: {next_order}
 remaining balance: £{rem_bal:.2f}
 remaining days: {rem_days}
 current advice is: {ta_advice}
-"""
-                    print("*"*30, report)
-                    sendSms(report)
+""")
                     executed[product] = True
 
             elif ta_advice == "BUY" or ta_advice == "STRONG_BUY" or delta.days > days + 1:  # noqa: E501
-                report = f"""
+                report = {
+                        "type": "executing",
+                        "time": nowtime,
+                        "product": product,
+                        "daily": daily,
+                        "rem_days": rem_days,
+                        "rem_bal": rem_bal,
+                        "next_order": next_order,
+                        "holdings": product_bal,
+                        "price_diff": price_diff,
+                        "price_diff_pct": price_diff_pct,
+                        "cur_price": cur_price,
+                        "ta_advice": ta_advice,
+                        }
+                reportJson(report)
+
+                sendSms(f"""
 executing {product} order:
 remaining balance £{rem_bal:.2f}
 remaining days {rem_days}
@@ -227,9 +298,7 @@ current price: £{cur_price}
 last orders price: £{last_order_price}
 price difference: {price_diff:.2f} ({price_diff_pct}%)
 current advice is: {ta_advice}
-"""
-                print("*"*30, report)
-                sendSms(report)
+""")
                 executed[product] = False
                 executeMarketOrder(product, daily)
 
