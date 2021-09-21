@@ -88,7 +88,7 @@ def taSummary(product):
         symbol=p,
         screener="crypto",
         exchange="coinbase",
-        interval=Interval.INTERVAL_1_DAY
+        interval=Interval.INTERVAL_1_WEEK
     )
     summary = ta.get_analysis().summary
 
