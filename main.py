@@ -18,6 +18,7 @@ b64secret = os.environ.get("CB_SECRET")
 products = os.environ.get("CB_PRODUCTS", "BTC-GBP,ETH-GBP")
 delay = os.environ.get("CB_DELAY", 3600)
 dip_pct = os.environ.get("CB_DIP_PCT", -5.0)
+dip_buy = os.environ.get("CB_DIP_BUY", 2)
 debug = os.environ.get("CB_DEBUG", False)
 days = os.environ.get("CB_DAYS", 1)
 sms_to = os.environ.get("CB_SMS_TO")
@@ -177,9 +178,11 @@ Last order price was {last_order_price}
 At {nowtime} {product} dipped {price_diff_pct}%
 from your last order price ({last_order_price}) to {cur_price}
 current advice is: {ta_advice}
+buying..
 """
                     print(report)
                     sendSms(report)
+                    executeMarketOrder(product, daily * float(dip_buy))
 
             last_order_date = datetime.strptime(last_order['created_at'],
                                                 "%Y-%m-%dT%H:%M:%S.%fZ")
