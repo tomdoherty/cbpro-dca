@@ -182,7 +182,7 @@ buying..
 """
                     print(report)
                     sendSms(report)
-                    executeMarketOrder(product, daily * float(dip_buy))
+                    executeMarketOrder(product, float(daily) * float(dip_buy))
 
             last_order_date = datetime.strptime(last_order['created_at'],
                                                 "%Y-%m-%dT%H:%M:%S.%fZ")
