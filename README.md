@@ -14,6 +14,7 @@ Configuration is by environment variables:
 | CB_DEBUG      | Don't execute, output debug info   | false                 |
 | CB_DELAY      | Delay between polls                | 3600                  |
 | CB_DIP_PCT    | Alert price dips X from last order | -5                    |
+| CB_DIP_BUY    | Multiply buy by X when buying dips | 2                     |
 | CB_KEY        | API Key                            |                       |
 | CB_PASS       | API Password                       |                       |
 | CB_PRODUCTS   | Products to DCA. Product:Percent   | BTC-GBP:40,ETH-GBP:60 |
