@@ -38,7 +38,8 @@ def remainingBalance():
     try:
         return float(next(item for item in auth_client.get_accounts()
                           if item["currency"] == "GBP")["available"])
-    except:
+    except Exception as e:
+        print(f"[ERROR] {e}")
         return False
 
 
