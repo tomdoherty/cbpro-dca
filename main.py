@@ -35,8 +35,11 @@ def daysLeftInMonth():
 
 
 def remainingBalance():
-    return float(next(item for item in auth_client.get_accounts()
-                      if item["currency"] == "GBP")["available"])
+    try:
+        return float(next(item for item in auth_client.get_accounts()
+                          if item["currency"] == "GBP")["available"])
+    except:
+        return False
 
 
 def productBalance(product):
@@ -127,6 +130,11 @@ if __name__ == '__main__':
         auth_client = cbpro.AuthenticatedClient(key, b64secret, passphrase)
 
         rem_bal = remainingBalance()
+
+        if not rem_bal:
+            time.sleep(int(delay))
+            continue
+
         rem_days = daysLeftInMonth()
 
         for p in products.split(','):
