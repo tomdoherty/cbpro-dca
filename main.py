@@ -129,6 +129,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     print(f"Running DCA for {products} every {days} days")
+    funds = True
     while True:
         client = cbpro.PublicClient()
         auth_client = cbpro.AuthenticatedClient(key, b64secret, passphrase)
@@ -202,12 +203,14 @@ buying..
             delta = datetime.now() - last_order_date
 
             if float(daily) < 10.0:
-                report = "Insufficient funds"
-                print(report)
-                sendSms(report)
-                sys.exit(1)
+                if funds:
+                    funds = False
+                    report = "Insufficient funds"
+                    print(report)
+                    sendSms(report)
 
             elif delta.days < float(days):
+                funds = True
                 if not executed[product]:
                     order = auth_client.get_order(last_order["order_id"])
                     fill_fees = float(order['fill_fees'])
@@ -234,6 +237,7 @@ current advice is: {ta_advice}
                     executed[product] = True
 
             elif ta_advice == "BUY" or ta_advice == "STRONG_BUY" or delta.days > days + 1:  # noqa: E501
+                funds = True
                 report = f"""
 executing {product} order:
 remaining balance £{rem_bal:.2f}
