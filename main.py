@@ -66,10 +66,13 @@ def executeMarketOrder(product, amount):
 def sendSms(body):
     client = Client(twilio_sid, twilio_secret)
 
-    client.messages.create(body=body,
-                           from_=sms_from,
-                           to=sms_to
-                           )
+    try:
+        client.messages.create(body=body,
+                               from_=sms_from,
+                               to=sms_to
+                               )
+    except Exception as e:
+        print(f"[ERROR] {e}")
 
 
 def validateProducts(products):
@@ -195,7 +198,7 @@ buying..
 
             last_order_date = datetime.strptime(last_order['created_at'],
                                                 "%Y-%m-%dT%H:%M:%S.%fZ")
-            next_order = last_order_date + timedelta(days=1)
+            next_order = last_order_date + timedelta(days=int(days))
             delta = datetime.now() - last_order_date
 
             if float(daily) < 10.0:
